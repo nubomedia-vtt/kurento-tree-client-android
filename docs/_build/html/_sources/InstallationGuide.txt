@@ -2,7 +2,7 @@
 Installation Guide
 ******************
 
-This documents provides information how to compile the kurento-room-client-android library from the sources for your project.
+This documents provides information how to compile the kurento-tree-client-android library from the sources for your project.
 
 
 Clone repository:
@@ -10,7 +10,7 @@ Clone repository:
 .. code:: bash
 
     sudo apt-get install git
-    git clone https://github.com/nubomedia-vtt/kurento-room-client-android.git
+    git clone https://github.com/nubomedia-vtt/kurento-tree-client-android.git
 
 Setup the developing environment by importing the project to Android Studio.
 Import the third-party libraries via Maven by adding the following lines to the module's build.gradle file
