@@ -14,5 +14,14 @@ public interface TreeListener {
 
     public void onTreeNotification(TreeNotification notification);
 
+    /**
+     * The connection to room is ready.
+     */
+    public void onTreeConnected();
+
+    /**
+     * The connection to room is lost or disconnected.
+     */
+    public void onTreeDisconnected();
 
 }

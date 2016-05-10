@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: "com.jfrog.bintray"
 
-version "1.0.0"
+version "1.0.1"
 
 android {
     compileSdkVersion 23
@@ -27,7 +27,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
 
-    compile 'fi.vtt.nubomedia:webrtcpeer-android:1.0.0'
     compile 'fi.vtt.nubomedia:jsonrpc-ws-android:1.0.4'
     compile 'fi.vtt.nubomedia:utilities-android:1.0.0'
 }
@@ -57,9 +56,9 @@ install {
                 }
                 developers {
                     developer {
-                        id 'jukkaahola'
-                        name 'Jukka Ahola'
-                        email 'jukka.ahola@vtt.fi'
+                        id 'maenpoika'
+                        name 'Toni Mäki'
+                        email 'toni.maki@vtt.fi'
                     }
                 }
                 scm {

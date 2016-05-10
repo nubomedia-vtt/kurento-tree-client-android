@@ -62,18 +62,34 @@ public class TreeResponse {
     }
 
     private HashMap<String, String> getJSONObjectValues(JSONObject obj){
-        if(!obj.containsKey("value")) {
-            return null;
-        }
-        HashMap<String, String> result = new HashMap<String, String>();
-        JSONArray value = (JSONArray)obj.get("value");
-        for(int i=0;i<value.size();i++) {
-            JSONObject jo = (JSONObject) value.get(i);
-            Set<String> keys = jo.keySet();
-            for(String key : keys){
-                result.put(key, jo.get(key).toString());
+        HashMap<String, String> result = new HashMap<String, String>();;
+
+        if(obj.containsKey("value")) {
+
+            JSONArray value = (JSONArray)obj.get("value");
+            for(int i=0;i<value.size();i++) {
+                JSONObject jo = (JSONObject) value.get(i);
+                Set<String> keys = jo.keySet();
+                for(String key : keys){
+                    result.put(key, jo.get(key).toString());
+                }
             }
         }
+
+
+        if (obj.containsKey("answerSdp")){
+            String sd = (String)obj.get("answerSdp");
+            result.put("answerSdp", sd);
+        }
+
+        if (obj.containsKey("sinkId")){
+            result.put("sinkId", (String)obj.get("sinkId"));
+        }
+
+        if (result.isEmpty()) {
+            result = null;
+        }
+
         return result;
     }
 

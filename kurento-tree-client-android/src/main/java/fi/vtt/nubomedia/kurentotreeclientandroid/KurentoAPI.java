@@ -4,6 +4,7 @@ import android.util.Log;
 
 import net.minidev.json.JSONObject;
 
+import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
@@ -25,7 +26,21 @@ public abstract class KurentoAPI implements JsonRpcWebSocketClient.WebSocketConn
     protected JsonRpcWebSocketClient client = null;
     protected LooperExecutor executor = null;
     protected String wsUri = null;
+    protected WebSocketClient.WebSocketClientFactory webSocketClientFactory = null;
 
+    /**
+     * Constructor that initializes required instances and parameters for the API calls.
+     * WebSocket connections are not established in the constructor. User is responsible
+     * for opening, closing and checking if the connection is open through the corresponding
+     * API calls.
+     *
+     * @param executor is the asynchronous UI-safe executor for tasks.
+     * @param uri is the web socket link to the room web services.
+     */
+    public KurentoAPI(LooperExecutor executor, String uri) {
+        this.executor = executor;
+        this.wsUri = uri;
+    }
 
     /**
      * Opens a web socket connection to the predefined URI as provided in the constructor.
@@ -39,6 +54,9 @@ public abstract class KurentoAPI implements JsonRpcWebSocketClient.WebSocketConn
             }
             URI uri = new URI(wsUri);
             client = new JsonRpcWebSocketClient(uri, this,executor);
+            if (webSocketClientFactory != null) {
+                client.setWebSocketFactory(webSocketClientFactory);
+            }
             executor.execute(new Runnable() {
                 public void run() {
                     client.connect();

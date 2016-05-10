@@ -4,7 +4,23 @@ import android.util.Log;
 
 import net.minidev.json.JSONObject;
 
+import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
+import org.java_websocket.handshake.ServerHandshake;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
+import java.util.Vector;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 import fi.vtt.nubomedia.jsonrpcwsandroid.JsonRpcNotification;
 import fi.vtt.nubomedia.jsonrpcwsandroid.JsonRpcResponse;
@@ -14,10 +30,9 @@ import fi.vtt.nubomedia.utilitiesandroid.LooperExecutor;
 
 public class KurentoTreeAPI extends KurentoAPI {
     private static final String LOG_TAG = "KurentoTreeAPI";
-    private JsonRpcWebSocketClient client = null;
-    private LooperExecutor executor = null;
-    private String wsUri = "http://treeserver:port/kurento-tree";
-    private TreeListener treeListener = null;
+    private KeyStore keyStore;
+    private boolean usingSelfSigned = false;
+    private Vector<TreeListener> listeners;
 
     /**
      * Constructor that initializes required instances and parameters for the API calls.
@@ -30,10 +45,20 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param listener interface handles the callbacks for responses, notifications and errors.
      */
     public KurentoTreeAPI(LooperExecutor executor, String uri, TreeListener listener){
-        super();
-        this.executor = executor;
-        this.wsUri = uri;
-        this.treeListener = listener;
+        super(executor, uri);
+
+        listeners = new Vector<TreeListener>();
+        listeners.add(listener);
+
+        // Create a KeyStore containing our trusted CAs
+        try {
+            keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(null, null);
+        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     /**
@@ -123,7 +148,9 @@ public class KurentoTreeAPI extends KurentoAPI {
     public void sendAddIceCandidate(String treeId,String sinkId, String sdpMid, int sdpMLineIndex, String candidate, int id){
         HashMap<String, Object> namedParameters = new HashMap<String, Object>();
         namedParameters.put("treeId", treeId);
-        namedParameters.put("sinkId", sinkId);
+        if (sinkId != null) {
+            namedParameters.put("sinkId", sinkId);
+        }
         namedParameters.put("sdpMid", sdpMid);
         namedParameters.put("sdpMLineIndex", new Integer(sdpMLineIndex));
         namedParameters.put("candidate", candidate);
@@ -143,6 +170,73 @@ public class KurentoTreeAPI extends KurentoAPI {
         send("removeTree", namedParameters, id);
     }
 
+    /**
+     * This methods can be used to add a self-signed SSL certificate to be trusted when establishing
+     * connection.
+     * @param alias is a unique alias for the certificate
+     * @param cert is the certificate object
+     */
+    public void addTrustedCertificate(String alias, Certificate cert){
+        try {
+            keyStore.setCertificateEntry(alias, cert);
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Switches on/off the self-signed certificate support.
+     *
+     * @see KurentoTreeAPI#addTrustedCertificate(String, Certificate)
+     * @param use
+     */
+    public void useSelfSignedCertificate(boolean use){
+        this.usingSelfSigned = use;
+    }
+
+    /**
+     * Opens a web socket connection to the predefined URI as provided in the constructor.
+     * The method responds immediately, whether or not the connection is opened.
+     * The method isWebSocketConnected() should be called to ensure that the connection is open.
+     * Secure socket is created if protocol contained in Uri is either https or wss.
+     */
+    public void connectWebSocket() {
+        if(isWebSocketConnected()){
+            return;
+        }
+
+        // Switch to SSL web socket client factory if secure protocol detected
+        String scheme = null;
+        try {
+            scheme = new URI(wsUri).getScheme();
+            if (scheme.equals("https") || scheme.equals("wss")){
+
+                // Create an SSLContext that uses our or default TrustManager
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+
+                if (usingSelfSigned) {
+                    // Create a TrustManager that trusts the CAs in our KeyStore
+                    String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+                    TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+                    tmf.init(keyStore);
+                    sslContext.init(null, tmf.getTrustManagers(), null);
+                } else {
+                    sslContext.init(null, null, null);
+                }
+                webSocketClientFactory = new DefaultSSLWebSocketClientFactory(sslContext);
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+        super.connectWebSocket();
+    }
+
         /* WEB SOCKET CONNECTION EVENTS */
 
 
@@ -154,10 +248,18 @@ public class KurentoTreeAPI extends KurentoAPI {
         if(response.isSuccessful()){
             JSONObject jsonObject = (JSONObject)response.getResult();
             TreeResponse treeResponse = new TreeResponse(response.getId().toString(), jsonObject);
-            treeListener.onTreeResponse(treeResponse);
+            synchronized (listeners) {
+                for (TreeListener tl : listeners) {
+                    tl.onTreeResponse(treeResponse);
+                }
+            }
         } else {
             TreeError treeError = new TreeError(response.getError());
-            treeListener.onTreeError(treeError);
+            synchronized (listeners) {
+                for (TreeListener tl : listeners) {
+                    tl.onTreeError(treeError);
+                }
+            }
         }
     }
 
@@ -167,7 +269,11 @@ public class KurentoTreeAPI extends KurentoAPI {
     @Override
     public void onNotification(JsonRpcNotification notification) {
         TreeNotification treeNotification = new TreeNotification(notification);
-        treeListener.onTreeNotification(treeNotification);
+        synchronized (listeners) {
+            for (TreeListener tl : listeners) {
+                tl.onTreeNotification(treeNotification);
+            }
+        }
     }
 
     @Override
@@ -175,5 +281,39 @@ public class KurentoTreeAPI extends KurentoAPI {
         Log.e(LOG_TAG, "onError: "+e.getMessage(), e);
     }
 
+
+    @Override
+    public void onOpen(ServerHandshake handshakedata) {
+        super.onOpen(handshakedata);
+
+        synchronized (listeners) {
+            for (TreeListener tl : listeners) {
+                tl.onTreeConnected();
+            }
+        }
+    }
+
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+        super.onClose(code, reason, remote);
+
+        synchronized (listeners) {
+            for (TreeListener tl : listeners) {
+                tl.onTreeDisconnected();
+            }
+        }
+    }
+
+    public void addObserver(TreeListener listener){
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
+    }
+
+    public void removeObserver(TreeListener listener){
+        synchronized (listeners) {
+            listeners.remove(listener);
+        }
+    }
 
 }
