@@ -1,12 +1,9 @@
 package fi.vtt.nubomedia.kurentotreeclientandroid;
 
 import android.util.Log;
-
 import net.minidev.json.JSONObject;
-
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.handshake.ServerHandshake;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,13 +15,10 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Vector;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-
 import fi.vtt.nubomedia.jsonrpcwsandroid.JsonRpcNotification;
 import fi.vtt.nubomedia.jsonrpcwsandroid.JsonRpcResponse;
-import fi.vtt.nubomedia.jsonrpcwsandroid.JsonRpcWebSocketClient;
 import fi.vtt.nubomedia.utilitiesandroid.LooperExecutor;
 
 
@@ -47,7 +41,7 @@ public class KurentoTreeAPI extends KurentoAPI {
     public KurentoTreeAPI(LooperExecutor executor, String uri, TreeListener listener){
         super(executor, uri);
 
-        listeners = new Vector<TreeListener>();
+        listeners = new Vector<>();
         listeners.add(listener);
 
         // Create a KeyStore containing our trusted CAs
@@ -69,8 +63,9 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param treeId is the name of the tree to be created.
      * @param id is an index number to track the corresponding response message to this request.
      */
+    @SuppressWarnings("unused")
     public void sendCreateTree(String treeId, int id){
-        HashMap<String, Object> namedParameters = new HashMap<String, Object>();
+        HashMap<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("treeId", treeId);
         send("createTree", namedParameters, id);
     }
@@ -83,8 +78,9 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param offerSdp is the SDP offer sent by this client.
      * @param id is an index number to track the corresponding response message to this request.
      */
+    @SuppressWarnings("unused")
     public void sendSetTreeSource(String treeId, String offerSdp, int id){
-        HashMap<String, Object> namedParameters = new HashMap<String, Object>();
+        HashMap<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("treeId", treeId);
         namedParameters.put("offerSdp", offerSdp);
         send("setTreeSource", namedParameters, id);
@@ -97,8 +93,9 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param treeId is the name of the tree this method refers to.
      * @param id is an index number to track the corresponding response message to this request.
      */
+    @SuppressWarnings("unused")
     public void sendRemoveTreeSource(String treeId, int id){
-        HashMap<String, Object> namedParameters = new HashMap<String, Object>();
+        HashMap<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("treeId", treeId);
         send("removeTreeSource", namedParameters, id);
     }
@@ -111,8 +108,9 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param offerSdp is the SDP offer sent by this client.
      * @param id is an index number to track the corresponding response message to this request.
      */
+    @SuppressWarnings("unused")
     public void sendAddTreeSink(String treeId, String offerSdp, int id){
-        HashMap<String, Object> namedParameters = new HashMap<String, Object>();
+        HashMap<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("treeId", treeId);
         namedParameters.put("offerSdp", offerSdp);
         send("addTreeSink", namedParameters, id);
@@ -126,8 +124,9 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param sinkId is the name of the previously connected sink.
      * @param id is an index number to track the corresponding response message to this request.
      */
+    @SuppressWarnings("unused")
     public void sendRemoveTreeSink(String treeId, String sinkId, int id){
-        HashMap<String, Object> namedParameters = new HashMap<String, Object>();
+        HashMap<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("treeId", treeId);
         namedParameters.put("sinkId", sinkId);
         send("removeTreeSink", namedParameters, id);
@@ -145,14 +144,15 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param candidate contains the candidate attribute information
      * @param id is an index number to track the corresponding response message to this request.
      */
+    @SuppressWarnings("unused")
     public void sendAddIceCandidate(String treeId,String sinkId, String sdpMid, int sdpMLineIndex, String candidate, int id){
-        HashMap<String, Object> namedParameters = new HashMap<String, Object>();
+        HashMap<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("treeId", treeId);
         if (sinkId != null) {
             namedParameters.put("sinkId", sinkId);
         }
         namedParameters.put("sdpMid", sdpMid);
-        namedParameters.put("sdpMLineIndex", new Integer(sdpMLineIndex));
+        namedParameters.put("sdpMLineIndex", sdpMLineIndex);
         namedParameters.put("candidate", candidate);
         send("addIceCandidate", namedParameters, id);
     }
@@ -164,8 +164,9 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param treeId  is the name of the tree this method refers to.
      * @param id is an index number to track the corresponding response message to this request.
      */
+    @SuppressWarnings("unused")
     public void sendRemoveTree(String treeId, int id){
-        HashMap<String, Object> namedParameters = new HashMap<String, Object>();
+        HashMap<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("treeId", treeId);
         send("removeTree", namedParameters, id);
     }
@@ -176,6 +177,7 @@ public class KurentoTreeAPI extends KurentoAPI {
      * @param alias is a unique alias for the certificate
      * @param cert is the certificate object
      */
+    @SuppressWarnings("unused")
     public void addTrustedCertificate(String alias, Certificate cert){
         try {
             keyStore.setCertificateEntry(alias, cert);
@@ -188,8 +190,9 @@ public class KurentoTreeAPI extends KurentoAPI {
      * Switches on/off the self-signed certificate support.
      *
      * @see KurentoTreeAPI#addTrustedCertificate(String, Certificate)
-     * @param use
+     * @param use If true then self-signed certificates are enabled
      */
+    @SuppressWarnings("unused")
     public void useSelfSignedCertificate(boolean use){
         this.usingSelfSigned = use;
     }
@@ -206,7 +209,7 @@ public class KurentoTreeAPI extends KurentoAPI {
         }
 
         // Switch to SSL web socket client factory if secure protocol detected
-        String scheme = null;
+        String scheme;
         try {
             scheme = new URI(wsUri).getScheme();
             if (scheme.equals("https") || scheme.equals("wss")){
@@ -303,13 +306,13 @@ public class KurentoTreeAPI extends KurentoAPI {
             }
         }
     }
-
+    @SuppressWarnings("unused")
     public void addObserver(TreeListener listener){
         synchronized (listeners) {
             listeners.add(listener);
         }
     }
-
+    @SuppressWarnings("unused")
     public void removeObserver(TreeListener listener){
         synchronized (listeners) {
             listeners.remove(listener);
