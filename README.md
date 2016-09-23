@@ -72,5 +72,5 @@ Support is provided through the [Nubomedia Public Mailing List]
 [NUBOMEDIA]: http://www.nubomedia.eu
 [Github]: https://github.com/nubomedia-vtt/kurento-tree-client-android
 [Nubomedia Public Mailing List]: https://groups.google.com/forum/#!forum/nubomedia-dev
-[project documentation page]: http://kurento-tree-client-android.readthedocs.org/en/latest/
-[maven artifact page]: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22fi.vtt.nubomedia%22%20AND%20a%3A%22kurento-tree-client-android%22
+[project documentation page]: http://doc-kurento-tree-client-android.readthedocs.org/en/latest/
+[maven artifact page]: https://mvnrepository.com/artifact/fi.vtt.nubomedia/kurento-tree-client-android
