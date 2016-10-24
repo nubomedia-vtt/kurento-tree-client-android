@@ -38,17 +38,13 @@ install {
         pom {
             project {
                 packaging 'aar'
-
-                // Add your description here
                 name 'kurento-tree-client-android'
                 description = 'Android library for making kurento tree API calls'
                 url siteUrl
-
-                // Set your license
                 licenses {
                     license {
-                        name 'The BSD 3-Clause License'
-                        url 'https://github.com/nubomedia-vtt/kurento-tree-client-android/blob/master/LICENSE'
+                        name 'Apache License 2.0'
+                        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
                 developers {
